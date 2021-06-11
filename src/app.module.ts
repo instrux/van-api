@@ -1,25 +1,28 @@
 import { Module } from '@nestjs/common';
-import { join } from 'path';
-import { DbModule } from './database/db.module';
+import { MongooseModule } from '@nestjs/mongoose';
+import { ConfigModule, ConfigService } from '@nestjs/config';
 
-import { Main } from './api/main';
-
-import { DbService } from './common/db.service';
-import { FacadeService } from './common/facade.service';
-import { AdminCache } from './cache/admin.cache';
+import { AppController } from './app.controller';
+import { UsersModule } from './users/users.module';
+import { AuthModule } from './auth/auth.module';
 
 @Module({
   imports: [
-    DbModule,
+    ConfigModule.forRoot(),
+    MongooseModule.forRootAsync({
+      imports: [ConfigModule],
+      useFactory: async (config: ConfigService) => ({
+        uri: config.get<string>('database'),
+      }),
+      inject: [ConfigService],
+    }),
+    AuthModule,
+    UsersModule,
   ],
   controllers: [
-    Main,
+    AppController,
   ],
-  providers: [
-    DbService,
-    FacadeService,
-    AdminCache,
-  ],
+  providers: [],
 })
 export class AppModule {
 }
